@@ -12,11 +12,11 @@ public class playerCharacter : MonoBehaviour {
 	void Update () {
 	
 	}
-	void OnTriggerEnter(Collider other)
+	/*void OnTriggerEnter(Collider other)
 	{
 		if (other.gameObject.tag == "test")
 		{
 		Destroy(other.gameObject);
 		}
-	}
+	}*/
 }

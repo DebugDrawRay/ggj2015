@@ -10,6 +10,10 @@ public class gameController : MonoBehaviour
 	public GameObject mage;
 	public GameObject defender;
 
+	public GameObject enemyWarrior;
+	public GameObject enemyMage;
+	public GameObject enemyDefender;
+
 	public int warriorCount;
 	public int mageCount;
 	public int defenderCount;
@@ -30,8 +34,8 @@ public class gameController : MonoBehaviour
 	private bool mageSend = false;
 	private bool defenderSend = false;
 
-	private bool switchState;
-	private int state;
+	public bool switchState;
+	public int state;
 
 	public float introDelay;
 	public float roundDelay;
@@ -42,7 +46,6 @@ public class gameController : MonoBehaviour
 	void Start()
 	{
 		switchState = true;
-		state = 1;
 		spawnObjects();
 		//initialize vars
 	}
@@ -111,14 +114,13 @@ public class gameController : MonoBehaviour
 
 	void createEncounter(int type)
 	{
-
 		if(type == 0)
 		{
 			createNewUnits(warrior, 10, false);
 		}
 		if(type == 1)
 		{
-			createNewUnits(warrior, 10, true);
+			createNewUnits(enemyWarrior, 10, true);
 		}
 	}
 
@@ -141,7 +143,14 @@ public class gameController : MonoBehaviour
 
 	void endEncounter(int type)
 	{
-
+		if(state == 0)
+		{
+			state = 1;
+		}
+		if(state == 1)
+		{
+			state = 0;
+		}
 	}
 	void sendListener()
 	{
@@ -167,7 +176,7 @@ public class gameController : MonoBehaviour
 
 	void sendUnit(GameObject target, Vector3 velocity)
 	{	
-		GameObject newObj = Instantiate (target, playerPos - unitPoint, Quaternion.identity) as GameObject;
+		GameObject newObj = Instantiate (target, unitPoint, Quaternion.identity) as GameObject;
 		newObj.gameObject.GetComponent<unitProperties> ().isPlayer = true;
 		newObj.gameObject.GetComponent<unitProperties> ().useNewVelocity = true;
 		newObj.gameObject.GetComponent<unitProperties>().currentVelocity = velocity;
