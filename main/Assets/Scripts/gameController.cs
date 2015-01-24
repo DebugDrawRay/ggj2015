@@ -1,78 +1,176 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class gameController : MonoBehaviour 
 
 {
 	public GameObject playerChar;
-	public GameObject warriorPoint;
-	public GameObject magePoint;
-	public GameObject defenderPoint;
+	public GameObject warrior;
+	public GameObject mage;
+	public GameObject defender;
 
-	private GameObject warrior;
-	private GameObject mage;
-	private GameObject defender;
+	public int warriorCount;
+	public int mageCount;
+	public int defenderCount;
+
+	private List<GameObject> warriors = new List<GameObject>();
+	private List<GameObject> mages = new List<GameObject>();
+	private List<GameObject> defenders = new List<GameObject>();
 
 	public Vector3 playerPos;
-	public Vector3 warriorOffset;
-	public Vector3 mageOffset;
-	public Vector3 defenderOffset;
+	public Vector3 unitPoint;
+	public Vector3 worldSpawnPoint;
+	public Vector3 newUnitOffset;
 
 	public Vector3 maxForwardVelocity;
-	private Vector3 currentForwardVelocity;
+	public Vector3 maxReverseVelocity;
 
 	private bool warriorSend = false;
 	private bool mageSend = false;
 	private bool defenderSend = false;
-	private bool warriorSent = false;
-	private bool mageSent = false;
-	private bool defenderSent = false;
+
+	private bool switchState;
+	private int state;
+
+	public float introDelay;
+	public float roundDelay;
+	public float timeSet;
+	private bool timeDone;
+	public List<GameObject> encounterUnitList = new List<GameObject>();
 
 	void Start()
 	{
+		switchState = true;
+		state = 1;
 		spawnObjects();
 		//initialize vars
-		currentForwardVelocity = maxForwardVelocity;
 	}
 
 	void spawnObjects()
 	{
 		Instantiate (playerChar, playerPos, Quaternion.identity);
-		warrior = Instantiate (warriorPoint, playerPos - warriorOffset, Quaternion.identity) as GameObject;
-		mage = Instantiate (magePoint, playerPos - mageOffset, Quaternion.identity) as GameObject;
-		defender = Instantiate (defenderPoint, playerPos - defenderOffset, Quaternion.identity)as GameObject;
-
 	}
 	void Update()
 	{
 		inputListener ();
 		sendListener ();
-
+		stateListener ();
+		Timer ();
+	}
+	void Timer()
+	{
+		if (timeSet<=0)
+		{
+			timeDone = true;
+		}
+		if (timeSet>= 0)
+		{
+			timeDone = false;
+			timeSet -= Time.deltaTime;
+		}
 	}
 
+	void stateListener()
+	{
+		if(switchState && timeDone)
+		{
+			if (state == 1)
+			{
+				createEncounter(0);
+			}
+			if (state == 0)
+			{
+				createEncounter(1);
+			}
+			switchState = false;
+
+		}
+		if(encounterUnitList.Count <= 0 && !switchState)
+		{
+			if (state == 1)
+			{
+				endEncounter(0);
+			}
+			if (state == 0)
+			{
+				endEncounter(1);
+			}
+			timeSet = roundDelay;
+			switchState = true;
+		}
+		foreach(GameObject unit in encounterUnitList)
+		{
+			if (unit == null)
+			{
+			encounterUnitList.Remove(unit);
+			}
+			Debug.Log (encounterUnitList.Count);
+		}
+	}
+
+	void createEncounter(int type)
+	{
+
+		if(type == 0)
+		{
+			createNewUnits(warrior, 10, false);
+		}
+		if(type == 1)
+		{
+			createNewUnits(warrior, 10, true);
+		}
+	}
+
+	void createNewUnits(GameObject type, int count, bool hostile)
+	{
+		encounterUnitList = new List<GameObject>();
+		Vector3 currentSpawn = worldSpawnPoint;
+		for (int i = 1; i <= 10; i++)
+		{
+			GameObject newUnit = Instantiate(type, currentSpawn, Quaternion.identity) as GameObject;
+			newUnit.GetComponent<unitProperties>().hostile = hostile;
+			newUnit.GetComponent<unitProperties>().currentVelocity = maxReverseVelocity;
+			newUnit.GetComponent<unitProperties>().useNewVelocity = true;
+			newUnit.GetComponent<unitProperties>().isPlayer = false;
+			currentSpawn += newUnitOffset;
+			encounterUnitList.Add(newUnit);
+
+		}
+	}
+
+	void endEncounter(int type)
+	{
+
+	}
 	void sendListener()
 	{
-		if(warriorSend && !warriorSent) 
+		if(warriorSend && warriorCount > 0) 
 		{
-			warriorSent = true;
-			sendUnit(warrior);
+			warriorCount --;
+			sendUnit(warrior, maxForwardVelocity);
+			warriorSend = false;
 		}
-		if(mageSend && !mageSent) 
+		if(mageSend && mageCount > 0) 
 		{
-			mageSent = true;
-			sendUnit(mage);
+			mageCount --;
+			sendUnit(mage, maxForwardVelocity);
+			mageSend = false;
 		}
-		if (defenderSend && !defenderSent) 
+		if (defenderSend && defenderCount > 0) 
 		{
-			defenderSent = true;
-			sendUnit(defender);
+			defenderCount --;
+			sendUnit(defender, maxForwardVelocity);
+			defenderSend = false;
 		}
 	}
 
-	void sendUnit(GameObject target)
-	{
-		target.gameObject.GetComponent<unitProperties> ().useNewVelocity = true;
-		target.gameObject.GetComponent<unitProperties>().currentVelocity = maxForwardVelocity;
+	void sendUnit(GameObject target, Vector3 velocity)
+	{	
+		GameObject newObj = Instantiate (target, playerPos - unitPoint, Quaternion.identity) as GameObject;
+		newObj.gameObject.GetComponent<unitProperties> ().isPlayer = true;
+		newObj.gameObject.GetComponent<unitProperties> ().useNewVelocity = true;
+		newObj.gameObject.GetComponent<unitProperties>().currentVelocity = velocity;
 	}
 
 	void inputListener()
@@ -81,25 +179,13 @@ public class gameController : MonoBehaviour
 		{
 			warriorSend = true;
 		}
-		if (Input.GetButtonUp ("Warriors")) 
-		{
-			warriorSent = false;
-		}
 		if (Input.GetButtonDown ("Mages")) 
 		{
 			mageSend = true;
 		}
-		if (Input.GetButtonUp ("Mages")) 
-		{
-			mageSent = false;
-		}
 		if (Input.GetButtonDown ("Defenders")) 
 		{
 			defenderSend = true;
-		}
-		if (Input.GetButtonUp ("Defenders")) 
-		{
-			defenderSent = false;
 		}
 	}
 }
