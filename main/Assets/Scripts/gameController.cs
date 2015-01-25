@@ -49,7 +49,7 @@ public class gameController : MonoBehaviour
 
 	public GameObject[] encounterList;
 	private List<GameObject[]> encounterGroups;
-	private float groupDelay;
+	public float groupDelay;
 	private bool sentGroup = false;
 	public int currentEncounter;
 	public int encounterUnits;
@@ -78,15 +78,7 @@ public class gameController : MonoBehaviour
 	}
 	void Timer()
 	{
-		if (timeSet<=0)
-		{
-			timeDone = true;
-		}
-		if (timeSet>= 0)
-		{
-			timeDone = false;
-			timeSet -= Time.deltaTime;
-		}
+		timeSet -= Time.deltaTime;
 	}
 
 	void loadEncounter(GameObject target)
@@ -107,7 +99,7 @@ public class gameController : MonoBehaviour
 
 	void runStates()
 	{
-		if(switchState && timeDone)
+		if(switchState && timeSet <= 0)
 		{
 			loadEncounter(encounterList[currentEncounter]);
 			switchState = false;
@@ -121,7 +113,7 @@ public class gameController : MonoBehaviour
 				timeSet = groupDelay;
 				sentGroup = false;
 			}
-			if (timeDone && !sentGroup)
+			if (!sentGroup && timeSet <= 0)
 			{
 				sentGroup = true;
 			}
@@ -157,22 +149,25 @@ public class gameController : MonoBehaviour
 	}
 	void purchaseListener()
 	{
-		if(buyUnits && !hostileEncounter && encounterUnitList.Count > 0)
+		if(buyUnits && !hostileEncounter && encounterUnitList.Count > 1)
 		{
-			if(encounterUnitList[0].GetComponent<unitProperties>().unitType == "warrior")
+			if(encounterUnitList[1].GetComponent<unitProperties>().unitType == "warrior")
 			{
 				warriorCount ++;
-				Destroy(encounterUnitList[0]);
+				Destroy(encounterUnitList[1]);
+				encounterUnitList.Remove(encounterUnitList[1]);
 			}
-			if(encounterUnitList[0].GetComponent<unitProperties>().unitType == "mage")
+			else if(encounterUnitList[1].GetComponent<unitProperties>().unitType == "mage")
 			{
 				mageCount ++;
-				Destroy(encounterUnitList[0]);
+				Destroy(encounterUnitList[1]);
+				encounterUnitList.Remove(encounterUnitList[1]);
 			}
-			if(encounterUnitList[0].GetComponent<unitProperties>().unitType == "defender")
+			else if(encounterUnitList[1].GetComponent<unitProperties>().unitType == "defender")
 			{
 				mageCount ++;
-				Destroy(encounterUnitList[0]);
+				Destroy(encounterUnitList[1]);
+				encounterUnitList.Remove(encounterUnitList[1]);
 			}
 			goldEmit.GetComponent<ParticleSystem>().Play ();
 			buyUnits = false;
@@ -213,23 +208,6 @@ public class gameController : MonoBehaviour
 			createNewUnits(enemyWarrior, 10, true);
 		}
 	}*/
-
-	void createNewUnits(GameObject type, int count, bool hostile)
-	{
-		encounterUnitList = new List<GameObject>();
-		Vector3 currentSpawn = worldSpawnPoint;
-		for (int i = 1; i <= 10; i++)
-		{
-			GameObject newUnit = Instantiate(type, currentSpawn, Quaternion.identity) as GameObject;
-			newUnit.GetComponent<unitProperties>().hostile = hostile;
-			newUnit.GetComponent<unitProperties>().currentVelocity = maxReverseVelocity;
-			newUnit.GetComponent<unitProperties>().useNewVelocity = true;
-			newUnit.GetComponent<unitProperties>().isPlayer = false;
-			currentSpawn += newUnitOffset;
-			encounterUnitList.Add(newUnit);
-
-		}
-	}
 
 	void endEncounter(int type)
 	{

@@ -1,12 +1,19 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+public class encounter : MonoBehaviour {
 
-public class Encounter 
-{
+	public GameObject[] encounterGroups;
+	public GameObject commander;
+	public float groupDelay;
 	public int unitCount;
-	// Use this for initialization
-	void Start () {
-	
+	public bool hostile;
+	void Start () 
+	{
+		foreach(GameObject group in encounterGroups)
+		{
+			unitCount += group.GetComponent<group>().availableUnits.Length;
+		}
 	}
 	
 	// Update is called once per frame

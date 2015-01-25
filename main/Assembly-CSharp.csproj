@@ -46,16 +46,14 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Scripts\Encounter.cs" />
      <Compile Include="Assets\Scripts\State.cs" />
      <Compile Include="Assets\Scripts\backgroundEngine.cs" />
+     <Compile Include="Assets\Scripts\encounter.cs" />
      <Compile Include="Assets\Scripts\gameController.cs" />
+     <Compile Include="Assets\Scripts\group.cs" />
      <Compile Include="Assets\Scripts\playerCharacter.cs" />
      <Compile Include="Assets\Scripts\unitProperties.cs" />
-     <Compile Include="Assets\backgroundEngine.cs" />
-     <Compile Include="Assets\encounter.cs" />
-     <Compile Include="Assets\group.cs" />
-     <Compile Include="Assets\playerCharacter.cs" />
+     <Compile Include="Assets\commander.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files (x86)/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/4.6.1/UnityEngine.UI.dll</HintPath>
  </Reference>
