@@ -9,10 +9,12 @@ public class gameController : MonoBehaviour
 	public GameObject warrior;
 	public GameObject mage;
 	public GameObject defender;
+	public GameObject recruitHouse;
 
 	public GameObject enemyWarrior;
 	public GameObject enemyMage;
 	public GameObject enemyDefender;
+	public GameObject commanderCharacter;
 
 	public GameObject goldEmit;
 
@@ -30,6 +32,7 @@ public class gameController : MonoBehaviour
 	public Vector3 worldSpawnPoint;
 	public Vector3 newUnitOffset;
 	public Vector3 commanderPos;
+	public Vector3 housePos;
 
 	public Vector3 maxForwardVelocity;
 	public Vector3 maxReverseVelocity;
@@ -60,7 +63,6 @@ public class gameController : MonoBehaviour
 	{
 		switchState = true;
 		spawnObjects();
-		currentEncounter = 0;
 		//initialize vars
 	}
 
@@ -85,11 +87,20 @@ public class gameController : MonoBehaviour
 	{
 		encounterUnitList = new List<GameObject>();
 		encounterGroups = new List<GameObject[]>();
-		encounterCommander = Instantiate(target.GetComponent<encounter>().commander, commanderPos, Quaternion.identity) as GameObject;
-		encounterUnitList.Add(encounterCommander);
 		groupDelay = target.GetComponent<encounter>().groupDelay;
 		encounterUnits = target.GetComponent<encounter>().unitCount;
 		hostileEncounter = target.GetComponent<encounter>().hostile;
+
+		if(hostileEncounter)
+		{
+			encounterCommander = Instantiate(commanderCharacter, commanderPos, Quaternion.identity) as GameObject;
+			encounterUnitList.Add(encounterCommander);
+		}
+		else
+		{
+			encounterCommander = Instantiate(recruitHouse, housePos, Quaternion.identity) as GameObject;
+			encounterUnitList.Add(encounterCommander);
+		}
 
 		foreach(GameObject group in target.GetComponent<encounter>().encounterGroups)
 		{
@@ -122,16 +133,16 @@ public class gameController : MonoBehaviour
 		{
 			timeSet = roundDelay;
 			switchState = true;
+			currentEncounter ++;
 		}
 
-		/*foreach(GameObject unit in encounterUnitList)
+		foreach(GameObject unit in encounterUnitList)
 		{
 			if (unit == null)
 			{
 				encounterUnitList.Remove(unit);
 			}
-			Debug.Log (encounterUnitList.Count);
-		}*/
+		}
 	}
 
 	void sendGroup(GameObject[] units)
@@ -248,8 +259,8 @@ public class gameController : MonoBehaviour
 	void sendUnit(GameObject target, Vector3 velocity)
 	{	
 		GameObject newObj = Instantiate (target, unitPoint, Quaternion.identity) as GameObject;
-		newObj.gameObject.GetComponent<unitProperties> ().isPlayer = true;
-		newObj.gameObject.GetComponent<unitProperties> ().useNewVelocity = true;
+		newObj.gameObject.GetComponent<unitProperties>().isPlayer = true;
+		newObj.gameObject.GetComponent<unitProperties>().useNewVelocity = true;
 		newObj.gameObject.GetComponent<unitProperties>().currentVelocity = velocity;
 	}
 

@@ -54,6 +54,12 @@
      <Compile Include="Assets\Scripts\playerCharacter.cs" />
      <Compile Include="Assets\Scripts\unitProperties.cs" />
      <Compile Include="Assets\commander.cs" />
+     <Compile Include="Assets\goldUI.cs" />
+     <Compile Include="Assets\recruitHouse.cs" />
+     <Compile Include="Assets\shieldUI.cs" />
+     <Compile Include="Assets\staffUI.cs" />
+     <Compile Include="Assets\startScreen.cs" />
+     <Compile Include="Assets\swordUI.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files (x86)/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/4.6.1/UnityEngine.UI.dll</HintPath>
  </Reference>

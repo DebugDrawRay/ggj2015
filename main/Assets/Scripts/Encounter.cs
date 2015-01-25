@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class encounter : MonoBehaviour {
 
 	public GameObject[] encounterGroups;
-	public GameObject commander;
+
 	public float groupDelay;
 	public int unitCount;
 	public bool hostile;
