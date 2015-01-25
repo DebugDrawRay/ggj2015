@@ -11,15 +11,18 @@ public class unitProperties : MonoBehaviour
 	public string unitType;
 	public float unitHealth;
 	public float penaltyMulti;
+	public int reward;
+	
 	void Update () 
 	{
-		if (useNewVelocity) 
-		{
-			rigidbody.velocity = currentVelocity;
-		}
+		rigidbody.velocity = currentVelocity;
 		if (unitHealth <=0)
 		{
 			Destroy(this.gameObject);
+			if (this.gameObject.tag == "Enemy")
+			{
+				GameObject.FindGameObjectWithTag("GameController").GetComponent<gameController>().gold += reward;
+			}
 		}
 	}
 
@@ -28,6 +31,11 @@ public class unitProperties : MonoBehaviour
 		if (other.gameObject.tag == "Boundary")
 		{
 			Destroy(this.gameObject);
+		}
+		if (other.gameObject.tag == "PlayerCharacter")
+		{
+			unitHealth--;
+			other.gameObject.GetComponent<playerCharacter>().health --;
 		}
 		if (other.gameObject.tag == oppositionTag)
 		{
@@ -41,7 +49,7 @@ public class unitProperties : MonoBehaviour
 				if(victoryCheck(unitType, other.gameObject.GetComponent<unitProperties>().unitType))
 				{
 					other.gameObject.GetComponent<unitProperties>().unitHealth--;
-					rigidbody.velocity = currentVelocity / penaltyMulti;
+					other.gameObject.GetComponent<unitProperties>().currentVelocity = other.gameObject.GetComponent<unitProperties>().currentVelocity / penaltyMulti;
 				}
 				else
 				{

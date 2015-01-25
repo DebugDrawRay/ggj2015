@@ -48,18 +48,20 @@
   <ItemGroup>
      <Compile Include="Assets\Scripts\State.cs" />
      <Compile Include="Assets\Scripts\backgroundEngine.cs" />
+     <Compile Include="Assets\Scripts\commander.cs" />
      <Compile Include="Assets\Scripts\encounter.cs" />
      <Compile Include="Assets\Scripts\gameController.cs" />
+     <Compile Include="Assets\Scripts\goldUI.cs" />
      <Compile Include="Assets\Scripts\group.cs" />
+     <Compile Include="Assets\Scripts\healthUI.cs" />
      <Compile Include="Assets\Scripts\playerCharacter.cs" />
+     <Compile Include="Assets\Scripts\recruitHouse.cs" />
+     <Compile Include="Assets\Scripts\shieldUI.cs" />
+     <Compile Include="Assets\Scripts\staffUI.cs" />
+     <Compile Include="Assets\Scripts\startScreen.cs" />
+     <Compile Include="Assets\Scripts\swordUI.cs" />
+     <Compile Include="Assets\Scripts\unitCloudController.cs" />
      <Compile Include="Assets\Scripts\unitProperties.cs" />
-     <Compile Include="Assets\commander.cs" />
-     <Compile Include="Assets\goldUI.cs" />
-     <Compile Include="Assets\recruitHouse.cs" />
-     <Compile Include="Assets\shieldUI.cs" />
-     <Compile Include="Assets\staffUI.cs" />
-     <Compile Include="Assets\startScreen.cs" />
-     <Compile Include="Assets\swordUI.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files (x86)/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/4.6.1/UnityEngine.UI.dll</HintPath>
  </Reference>

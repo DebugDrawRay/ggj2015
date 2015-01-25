@@ -11,21 +11,22 @@ public class gameController : MonoBehaviour
 	public GameObject defender;
 	public GameObject recruitHouse;
 
+	public List<GameObject> fieldedUnits;
+
 	public GameObject enemyWarrior;
 	public GameObject enemyMage;
 	public GameObject enemyDefender;
 	public GameObject commanderCharacter;
 
 	public GameObject goldEmit;
+	public int unitCost;
 
 	public int warriorCount;
 	public int mageCount;
 	public int defenderCount;
 	public int gold;
 
-	private List<GameObject> warriors = new List<GameObject>();
-	private List<GameObject> mages = new List<GameObject>();
-	private List<GameObject> defenders = new List<GameObject>();
+	public int unitCount;
 
 	public Vector3 playerPos;
 	public Vector3 unitPoint;
@@ -44,6 +45,11 @@ public class gameController : MonoBehaviour
 
 	public bool switchState;
 	public int state;
+	public bool paused;
+	public GameObject pauseScreen;
+	public GameObject resultsScreen;
+
+	public Vector2	UIScreenOffset;
 
 	public float introDelay;
 	public float roundDelay;
@@ -62,6 +68,7 @@ public class gameController : MonoBehaviour
 	void Start()
 	{
 		switchState = true;
+		paused = false;
 		spawnObjects();
 		//initialize vars
 	}
@@ -72,11 +79,39 @@ public class gameController : MonoBehaviour
 	}
 	void Update()
 	{
-		inputListener ();
-		sendListener ();
-		runStates();
-		purchaseListener();
-		Timer ();
+		if (!paused)
+		{
+			inputListener ();
+			sendListener ();
+			runStates();
+			purchaseListener();
+			Timer ();
+			unitCount = warriorCount + mageCount + defenderCount;
+		}
+	}
+	public void pause()
+	{
+		if(paused)
+		{
+			paused = false;
+			pauseScreen.transform.position = UIScreenOffset;
+			Time.timeScale = 1;
+		}
+		else
+		{
+			paused = true;
+			pauseScreen.GetComponent<RectTransform>().localPosition = Vector2.zero;
+			Time.timeScale = 0;
+		}
+	}
+	public void endGame()
+	{
+		Application.Quit();
+	}
+	public void restartGame()
+	{
+		Application.LoadLevel("main");
+		Time.timeScale = 1;
 	}
 	void Timer()
 	{
@@ -85,7 +120,9 @@ public class gameController : MonoBehaviour
 
 	void loadEncounter(GameObject target)
 	{
+		showResults(false);
 		encounterUnitList = new List<GameObject>();
+		fieldedUnits = new List<GameObject>();
 		encounterGroups = new List<GameObject[]>();
 		groupDelay = target.GetComponent<encounter>().groupDelay;
 		encounterUnits = target.GetComponent<encounter>().unitCount;
@@ -129,11 +166,24 @@ public class gameController : MonoBehaviour
 				sentGroup = true;
 			}
 		}
+		if (encounterUnitList.Count == 1 && fieldedUnits.Count <= 0 && unitCount <= 0)
+		{
+			Destroy(encounterUnitList[0]);
+		}
 		if(encounterUnitList.Count <= 0 && !switchState)
 		{
 			timeSet = roundDelay;
 			switchState = true;
 			currentEncounter ++;
+			if(hostileEncounter)
+			{
+				showResults(true);
+			}
+
+			foreach(GameObject unit in fieldedUnits)
+			{
+				Destroy(unit);
+			}
 		}
 
 		foreach(GameObject unit in encounterUnitList)
@@ -143,8 +193,26 @@ public class gameController : MonoBehaviour
 				encounterUnitList.Remove(unit);
 			}
 		}
+		foreach(GameObject unit in fieldedUnits)
+		{
+			if (unit == null)
+			{
+				encounterUnitList.Remove(unit);
+			}
+		}
 	}
 
+	void showResults(bool show)
+	{
+		if(show)
+		{
+		resultsScreen.transform.localPosition = Vector2.zero;
+		}
+		else
+		{
+			resultsScreen.transform.position = UIScreenOffset;
+		}
+	}
 	void sendGroup(GameObject[] units)
 	{
 		Vector3 currentSpawn = worldSpawnPoint;
@@ -160,7 +228,7 @@ public class gameController : MonoBehaviour
 	}
 	void purchaseListener()
 	{
-		if(buyUnits && !hostileEncounter && encounterUnitList.Count > 1)
+		if(buyUnits && !hostileEncounter && encounterUnitList.Count > 1 && gold >= unitCost)
 		{
 			if(encounterUnitList[1].GetComponent<unitProperties>().unitType == "warrior")
 			{
@@ -181,56 +249,11 @@ public class gameController : MonoBehaviour
 				encounterUnitList.Remove(encounterUnitList[1]);
 			}
 			goldEmit.GetComponent<ParticleSystem>().Play ();
+			gold -= unitCost;
 			buyUnits = false;
 		}
 	}
-	/*void stateListener()
-	{
-		if(switchState && timeDone)
-		{
-			createEncounter(state);
-			switchState = false;
 
-		}
-		if(encounterUnitList.Count <= 0 && !switchState)
-		{
-			endEncounter (state);
-			timeSet = roundDelay;
-			switchState = true;
-		}
-		foreach(GameObject unit in encounterUnitList)
-		{
-			if (unit == null)
-			{
-			encounterUnitList.Remove(unit);
-			}
-			Debug.Log (encounterUnitList.Count);
-		}
-	}
-
-	void createEncounter(int type)
-	{
-		if(type == 0)
-		{
-			createNewUnits(warrior, 10, false);
-		}
-		if(type == 1)
-		{
-			createNewUnits(enemyWarrior, 10, true);
-		}
-	}*/
-
-	void endEncounter(int type)
-	{
-		if(type == 0)
-		{
-			state = 1;
-		}
-		if(type == 1)
-		{
-			state = 0;
-		}
-	}
 	void sendListener()
 	{
 		if (hostileEncounter)
@@ -262,25 +285,36 @@ public class gameController : MonoBehaviour
 		newObj.gameObject.GetComponent<unitProperties>().isPlayer = true;
 		newObj.gameObject.GetComponent<unitProperties>().useNewVelocity = true;
 		newObj.gameObject.GetComponent<unitProperties>().currentVelocity = velocity;
+		fieldedUnits.Add(newObj);
 	}
 
 	void inputListener()
 	{
-		if (Input.GetButtonDown ("Warriors")) 
+		if (hostileEncounter && encounterUnitList.Count > 0)
 		{
-			warriorSend = true;
+			if (Input.GetButtonDown ("Warriors")) 
+			{
+				warriorSend = true;
+			}
+			if (Input.GetButtonDown ("Mages")) 
+			{
+				mageSend = true;
+			}
+			if (Input.GetButtonDown ("Defenders")) 
+			{
+				defenderSend = true;
+			}
 		}
-		if (Input.GetButtonDown ("Mages")) 
+		else if(!hostileEncounter && encounterUnitList.Count > 1)
 		{
-			mageSend = true;
+			if (Input.GetButtonDown("Buy"))
+			{
+				buyUnits = true;
+			}
 		}
-		if (Input.GetButtonDown ("Defenders")) 
+		if (Input.GetButtonDown("Pause"))
 		{
-			defenderSend = true;
-		}
-		if (Input.GetButtonDown("Buy"))
-		{
-			buyUnits = true;
+			pause();
 		}
 	}
 }

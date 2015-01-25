@@ -3,20 +3,15 @@ using System.Collections;
 
 public class playerCharacter : MonoBehaviour {
 
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
-	/*void OnTriggerEnter(Collider other)
+	public float health;
+
+	void Update () 
 	{
-		if (other.gameObject.tag == "test")
+		if (health <= 0)
 		{
-		Destroy(other.gameObject);
+			Destroy(this.gameObject);
+			Time.timeScale = 0;
+			GameObject.FindGameObjectWithTag("Game Over").GetComponent<RectTransform>().localPosition = Vector2.zero;
 		}
-	}*/
+	}
 }
