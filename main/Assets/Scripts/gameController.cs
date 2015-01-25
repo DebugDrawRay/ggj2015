@@ -25,6 +25,7 @@ public class gameController : MonoBehaviour
 	public int mageCount;
 	public int defenderCount;
 	public int gold;
+	public int victoryGold;
 
 	public int unitCount;
 
@@ -55,6 +56,11 @@ public class gameController : MonoBehaviour
 	public float roundDelay;
 	public float timeSet;
 	private bool timeDone;
+
+	public string resultsMessage;
+	public float resultsGold;
+	public float resultsDeath;
+	public float resultsTime;
 
 	public GameObject[] encounterList;
 	private List<GameObject[]> encounterGroups;
@@ -120,6 +126,11 @@ public class gameController : MonoBehaviour
 
 	void loadEncounter(GameObject target)
 	{
+		resultsGold = gold;
+		resultsDeath = 0;
+		resultsTime = Time.time;
+		resultsMessage = "Total Victory";
+
 		showResults(false);
 		encounterUnitList = new List<GameObject>();
 		fieldedUnits = new List<GameObject>();
@@ -169,6 +180,7 @@ public class gameController : MonoBehaviour
 		if (encounterUnitList.Count == 1 && fieldedUnits.Count <= 0 && unitCount <= 0)
 		{
 			Destroy(encounterUnitList[0]);
+			resultsMessage = "Survived Defeat";
 		}
 		if(encounterUnitList.Count <= 0 && !switchState)
 		{
@@ -178,6 +190,16 @@ public class gameController : MonoBehaviour
 			if(hostileEncounter)
 			{
 				showResults(true);
+				if (resultsMessage == "Survived Defeat")
+				{
+					resultsDeath --;
+				}
+				else
+				{
+					gold += victoryGold;
+				}
+				resultsGold = gold - resultsGold;
+				resultsTime = Time.time - resultsTime;
 			}
 
 			foreach(GameObject unit in fieldedUnits)
@@ -190,6 +212,7 @@ public class gameController : MonoBehaviour
 		{
 			if (unit == null)
 			{
+				resultsDeath ++;
 				encounterUnitList.Remove(unit);
 			}
 		}
@@ -206,7 +229,7 @@ public class gameController : MonoBehaviour
 	{
 		if(show)
 		{
-		resultsScreen.transform.localPosition = Vector2.zero;
+			resultsScreen.transform.localPosition = Vector2.zero;
 		}
 		else
 		{

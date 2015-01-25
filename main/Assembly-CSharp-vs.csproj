@@ -62,6 +62,10 @@
      <Compile Include="Assets\Scripts\swordUI.cs" />
      <Compile Include="Assets\Scripts\unitCloudController.cs" />
      <Compile Include="Assets\Scripts\unitProperties.cs" />
+     <Compile Include="Assets\resultsDeath.cs" />
+     <Compile Include="Assets\resultsGold.cs" />
+     <Compile Include="Assets\resultsMessage.cs" />
+     <Compile Include="Assets\resultsTime.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files (x86)/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/4.6.1/UnityEngine.UI.dll</HintPath>
  </Reference>
