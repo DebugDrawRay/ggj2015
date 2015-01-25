@@ -14,9 +14,12 @@ public class gameController : MonoBehaviour
 	public GameObject enemyMage;
 	public GameObject enemyDefender;
 
+	public GameObject goldEmit;
+
 	public int warriorCount;
 	public int mageCount;
 	public int defenderCount;
+	public int gold;
 
 	private List<GameObject> warriors = new List<GameObject>();
 	private List<GameObject> mages = new List<GameObject>();
@@ -26,6 +29,7 @@ public class gameController : MonoBehaviour
 	public Vector3 unitPoint;
 	public Vector3 worldSpawnPoint;
 	public Vector3 newUnitOffset;
+	public Vector3 commanderPos;
 
 	public Vector3 maxForwardVelocity;
 	public Vector3 maxReverseVelocity;
@@ -33,6 +37,7 @@ public class gameController : MonoBehaviour
 	private bool warriorSend = false;
 	private bool mageSend = false;
 	private bool defenderSend = false;
+	private bool buyUnits = false;
 
 	public bool switchState;
 	public int state;
@@ -41,12 +46,21 @@ public class gameController : MonoBehaviour
 	public float roundDelay;
 	public float timeSet;
 	private bool timeDone;
-	public List<GameObject> encounterUnitList = new List<GameObject>();
 
+	public GameObject[] encounterList;
+	private List<GameObject[]> encounterGroups;
+	private float groupDelay;
+	private bool sentGroup = false;
+	public int currentEncounter;
+	public int encounterUnits;
+	public List<GameObject> encounterUnitList;
+	private bool hostileEncounter;
+	private GameObject encounterCommander;
 	void Start()
 	{
 		switchState = true;
 		spawnObjects();
+		currentEncounter = 0;
 		//initialize vars
 	}
 
@@ -58,7 +72,8 @@ public class gameController : MonoBehaviour
 	{
 		inputListener ();
 		sendListener ();
-		stateListener ();
+		runStates();
+		purchaseListener();
 		Timer ();
 	}
 	void Timer()
@@ -74,31 +89,106 @@ public class gameController : MonoBehaviour
 		}
 	}
 
-	void stateListener()
+	void loadEncounter(GameObject target)
+	{
+		encounterUnitList = new List<GameObject>();
+		encounterGroups = new List<GameObject[]>();
+		encounterCommander = Instantiate(target.GetComponent<encounter>().commander, commanderPos, Quaternion.identity) as GameObject;
+		encounterUnitList.Add(encounterCommander);
+		groupDelay = target.GetComponent<encounter>().groupDelay;
+		encounterUnits = target.GetComponent<encounter>().unitCount;
+		hostileEncounter = target.GetComponent<encounter>().hostile;
+
+		foreach(GameObject group in target.GetComponent<encounter>().encounterGroups)
+		{
+			encounterGroups.Add (group.GetComponent<group>().availableUnits);
+		}
+	}
+
+	void runStates()
 	{
 		if(switchState && timeDone)
 		{
-			if (state == 1)
+			loadEncounter(encounterList[currentEncounter]);
+			switchState = false;
+		}
+		if(encounterUnitList.Count > 0 && !switchState)
+		{
+			if (sentGroup && encounterGroups.Count > 0)
 			{
-				createEncounter(0);
+				sendGroup(encounterGroups[0]);
+				encounterGroups.Remove(encounterGroups[0]);
+				timeSet = groupDelay;
+				sentGroup = false;
 			}
-			if (state == 0)
+			if (timeDone && !sentGroup)
 			{
-				createEncounter(1);
+				sentGroup = true;
 			}
+		}
+		if(encounterUnitList.Count <= 0 && !switchState)
+		{
+			timeSet = roundDelay;
+			switchState = true;
+		}
+
+		/*foreach(GameObject unit in encounterUnitList)
+		{
+			if (unit == null)
+			{
+				encounterUnitList.Remove(unit);
+			}
+			Debug.Log (encounterUnitList.Count);
+		}*/
+	}
+
+	void sendGroup(GameObject[] units)
+	{
+		Vector3 currentSpawn = worldSpawnPoint;
+		foreach(GameObject unit in units)
+		{
+			GameObject newUnit = Instantiate(unit, currentSpawn, Quaternion.identity) as GameObject;
+			newUnit.GetComponent<unitProperties>().currentVelocity = maxReverseVelocity;
+			newUnit.GetComponent<unitProperties>().useNewVelocity = true;
+			newUnit.GetComponent<unitProperties>().isPlayer = false;
+			currentSpawn += newUnitOffset;
+			encounterUnitList.Add (newUnit);
+		}
+	}
+	void purchaseListener()
+	{
+		if(buyUnits && !hostileEncounter && encounterUnitList.Count > 0)
+		{
+			if(encounterUnitList[0].GetComponent<unitProperties>().unitType == "warrior")
+			{
+				warriorCount ++;
+				Destroy(encounterUnitList[0]);
+			}
+			if(encounterUnitList[0].GetComponent<unitProperties>().unitType == "mage")
+			{
+				mageCount ++;
+				Destroy(encounterUnitList[0]);
+			}
+			if(encounterUnitList[0].GetComponent<unitProperties>().unitType == "defender")
+			{
+				mageCount ++;
+				Destroy(encounterUnitList[0]);
+			}
+			goldEmit.GetComponent<ParticleSystem>().Play ();
+			buyUnits = false;
+		}
+	}
+	/*void stateListener()
+	{
+		if(switchState && timeDone)
+		{
+			createEncounter(state);
 			switchState = false;
 
 		}
 		if(encounterUnitList.Count <= 0 && !switchState)
 		{
-			if (state == 1)
-			{
-				endEncounter(0);
-			}
-			if (state == 0)
-			{
-				endEncounter(1);
-			}
+			endEncounter (state);
 			timeSet = roundDelay;
 			switchState = true;
 		}
@@ -122,7 +212,7 @@ public class gameController : MonoBehaviour
 		{
 			createNewUnits(enemyWarrior, 10, true);
 		}
-	}
+	}*/
 
 	void createNewUnits(GameObject type, int count, bool hostile)
 	{
@@ -143,34 +233,37 @@ public class gameController : MonoBehaviour
 
 	void endEncounter(int type)
 	{
-		if(state == 0)
+		if(type == 0)
 		{
 			state = 1;
 		}
-		if(state == 1)
+		if(type == 1)
 		{
 			state = 0;
 		}
 	}
 	void sendListener()
 	{
-		if(warriorSend && warriorCount > 0) 
+		if (hostileEncounter)
 		{
-			warriorCount --;
-			sendUnit(warrior, maxForwardVelocity);
-			warriorSend = false;
-		}
-		if(mageSend && mageCount > 0) 
-		{
-			mageCount --;
-			sendUnit(mage, maxForwardVelocity);
-			mageSend = false;
-		}
-		if (defenderSend && defenderCount > 0) 
-		{
-			defenderCount --;
-			sendUnit(defender, maxForwardVelocity);
-			defenderSend = false;
+			if(warriorSend && warriorCount > 0) 
+			{
+				warriorCount --;
+				sendUnit(warrior, maxForwardVelocity);
+				warriorSend = false;
+			}
+			if(mageSend && mageCount > 0) 
+			{
+				mageCount --;
+				sendUnit(mage, maxForwardVelocity);
+				mageSend = false;
+			}
+			if (defenderSend && defenderCount > 0) 
+			{
+				defenderCount --;
+				sendUnit(defender, maxForwardVelocity);
+				defenderSend = false;
+			}
 		}
 	}
 
@@ -195,6 +288,10 @@ public class gameController : MonoBehaviour
 		if (Input.GetButtonDown ("Defenders")) 
 		{
 			defenderSend = true;
+		}
+		if (Input.GetButtonDown("Buy"))
+		{
+			buyUnits = true;
 		}
 	}
 }

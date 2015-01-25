@@ -10,33 +10,12 @@ public class unitProperties : MonoBehaviour
 	public string oppositionTag;
 	public string unitType;
 	public float unitHealth;
+	public float penaltyMulti;
 	void Update () 
 	{
-		if(!isPlayer && !hostile)
-		{
-			foreach(Transform child in transform)
-			{
-				child.gameObject.layer = 11;
-			}
-		}
-		else if(hostile)
-		{
-			foreach(Transform child in transform)
-			{
-				child.gameObject.layer = 12;
-			}
-		}
-		else
-		{
-			foreach(Transform child in transform)
-			{
-				child.gameObject.layer = 9;
-			}
-		}
 		if (useNewVelocity) 
 		{
 			rigidbody.velocity = currentVelocity;
-
 		}
 		if (unitHealth <=0)
 		{
@@ -46,6 +25,10 @@ public class unitProperties : MonoBehaviour
 
 	void OnTriggerStay(Collider other)
 	{
+		if (other.gameObject.tag == "Boundary")
+		{
+			Destroy(this.gameObject);
+		}
 		if (other.gameObject.tag == oppositionTag)
 		{
 			if(unitType == other.gameObject.GetComponent<unitProperties>().unitType)
@@ -58,6 +41,7 @@ public class unitProperties : MonoBehaviour
 				if(victoryCheck(unitType, other.gameObject.GetComponent<unitProperties>().unitType))
 				{
 					other.gameObject.GetComponent<unitProperties>().unitHealth--;
+					rigidbody.velocity = currentVelocity / penaltyMulti;
 				}
 				else
 				{
